@@ -2,9 +2,10 @@ name: Build & Push to Docker Hub
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   workflow_dispatch:
+  repository_dispatch:
+    types: [force-docker-build]
 
 jobs:
   docker:
