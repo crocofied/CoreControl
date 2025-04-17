@@ -26,3 +26,9 @@ jobs:
         git fetch upstream
         git merge upstream/main --allow-unrelated-histories --no-edit || true
         git push origin main
+
+    - name: Trigger Docker Build Workflow
+      uses: peter-evans/repository-dispatch@v3
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        event-type: force-docker-build
