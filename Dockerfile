@@ -1,20 +1,26 @@
-FROM debian:bookworm-slim
+# Build Stage
+FROM node:20-alpine AS builder
 
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        git \
-        make \
-        gcc \
-        build-essential \
-        curl && \
-    git clone https://github.com/crocofied/CoreControl.git /corecontrol && \
-    make -C /corecontrol && \
-    mv /corecontrol/corecontrol /usr/bin/corecontrol && \
-    rm -rf /corecontrol && \
-    apt-get remove -y git make gcc build-essential && \
-    apt-get autoremove -y && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+WORKDIR /app
 
-ENTRYPOINT ["corecontrol"]
-CMD ["status"]
+COPY package.json package-lock.json ./
+COPY prisma ./prisma
+
+RUN npm install
+RUN npx prisma generate
+
+COPY . .
+RUN npm run build
+
+# Production Stage
+FROM node:20-alpine
+
+WORKDIR /app
+ENV NODE_ENV=production
+
+COPY --from=builder /app /app
+RUN npm prune --production
+
+EXPOSE 3000
+
+CMD ["sh", "-c", "npx prisma migrate deploy && npm start"]
