@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   docker:
@@ -22,9 +23,15 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: Build and push
+    - name: Set up Node.js (for optional cache reuse)
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20'
+
+    - name: Build and push Docker image
       uses: docker/build-push-action@v5
       with:
         context: .
         push: true
         tags: fgrfn/corecontrol:latest
+        platforms: linux/amd64
